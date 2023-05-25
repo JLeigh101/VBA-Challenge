@@ -1,0 +1,120 @@
+Sub stocks()
+
+    ' Credit-------
+    ' Instructor Eli Rosenberg tutored a group of us with starter code for ticker, yearly change, percent change, and total stock volume functions
+    'I created the greatest percent increase, greatest percent decrease, and greatest total volume functions solo
+    
+    Dim lastrow As Long             'initialize lastrow counter variable
+    Dim i As Long                   'initialize the i counter variable
+    Dim count As Long               'initialize the count variable,
+    Dim opening As Double           'initialize open price variable, will stsore the current i row's open price
+    Dim closing As Double           'initialize close price variable, will store the current i row's close price
+    Dim volume As Double            'intialize volume variable, will store the current i row's volume
+    Dim ticker As String            'initialize stock ticker variable, will hold the current i's stock ticker string value
+    Dim percent_change As Double    'initialize the percent_change variabl, will store the calculated percent change for each stock symbol
+    Dim GPI As Double               'initialize the greatest percent increase variable
+    Dim GPIticker As String         'initialize the GPI ticker symbol string variable
+    Dim GPD As Double               'initialize the greatest percent decrease variable
+    Dim GPDticker As String         'initialize the GPD ticker symbol string variable
+    Dim GTV As Double               'initialize the greatest total volume variable
+    Dim GTVticker As String         'initialize the GTVticker symbol string variable
+    
+    For Each ws In Worksheets
+        lastrow = ws.Cells(Rows.count, 1).End(xlUp).Row             'cells(rows.count,1) returns the number of non-empty rows in column A, and selects the last non-empty cell looking at the end first and iterating up to the top of the column
+        count = 2                                                   'sets the count variable to 2 to avoid parsing the column labels in row 1
+        volume = 0                                                  'sets volume variable to 0 to start
+        opening = ws.Cells(2, 3).Value                              'loads opening variable with the contents of cell in row 2, column 3 (avoids header)
+        ticker = ws.Cells(2, 1).Value                               'loads ticker variable with the contents of cell in row 2, column 1 (avoids header)
+        GPI = 0                                                     'sets Greatest%Increase variable to 0
+        GPIticker = ""                                              'initialize GPIticker string to null
+        GPD = 0                                                     'sets Greatest%Decrease variable to 0
+        GPDticker = ""                                              'sets GPDticker string to null
+        GTV = 0                                                     'sets GreatestTotalVolume variable to 0
+        GTVticker = ""                                              'sets GTVticker string to null
+        
+        ws.Cells(1, 9).Value = "Ticker"                             'programatically creates a new column header for the ticker
+        ws.Cells(1, 10).Value = "Yearly Change"                     'programatically creates a new column header for the yearly change
+        ws.Cells(1, 11).Value = "Percent Change"                    'programatically creates a new column header for the percent change
+        ws.Cells(1, 12).Value = "Total Stock Volume"                'programatically creates a new column header for the Total Stock Volume
+        ws.Cells(2, 15).Value = "Greatest Percent Increase"         'programatically creates a new row label for the Greatest Percent Increase
+        ws.Cells(3, 15).Value = "Greatest Percent Decrease"
+        ws.Cells(4, 15).Value = "Greatest Total Volume"
+        ws.Cells(1, 16).Value = "Ticker"
+        ws.Cells(1, 17).Value = "Value"
+        
+        For i = 2 To lastrow                                        'iterates from row 2 to t lastrow, as defined above
+            
+            volume = volume + ws.Cells(i, 7).Value                  'keeps a running total of the stock volume in column G
+            
+            If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then  'checks to see if the next cell's ticker value is equal to the current cell's ticker value
+    
+                closing = ws.Cells(i, 6).Value                          'if it is equal, the closing price variable is set to the final value in the column before the next ticker symbol is reached
+                percent_change = (closing - opening) / opening          'percent_change variable is set with the (closing-opening)/opening
+                
+                
+                ws.Cells(count, 9).Value = ticker                       'fills in the blank cell in column 9 with the ticker symbol in every worksheet
+                ws.Cells(count, 10).Value = closing - opening           'fills in the blank cell in column 10 with the total change in stock price from open to close
+                
+                If (closing - opening > 0) Then                         'checks if the yearly change was positive
+                    ws.Cells(count, 10).Interior.ColorIndex = 4          'if yearly change was positive, set the cell color to green
+                ElseIf (closing - opening < 0) Then                     'checks if the yearly change was negative
+                    ws.Cells(count, 10).Interior.ColorIndex = 3          'if yearly change was negative, set the cell color to red
+                End If                                                  ' otherwise, don't change the color -- end if
+                
+                'Greatest Percent Increase function
+                If percent_change > 0 Then                              'checks if % change is poitive
+                    If percent_change > GPI Then                        'checks if new percent_change is greater than greatest percent increase
+                        GPI = percent_change                            'if perent_change is greater than GPI, then GPI beomes that new percent_change
+                        GPIticker = ticker                              'store the ticker string for the largest increase
+                        ws.Cells(2, 17).Value = GPI                     'diaplays GPI in cell Q2
+                        ws.Cells(2, 17).NumberFormat = "0.00%"          'formats cell Q2 to percent
+                        ws.Cells(2, 16).Value = GPIticker               'print the GPIticker to cell P2
+                    End If
+                End If
+                
+                'Greatest percent decrease function
+                If percent_change < 0 Then                              'checks if % change is negative
+                    If percent_change < GPD Then                        'if new percent change is less than greatest percent decrease
+                        GPD = percent_change                            'if percent_change is less than greatest percent decrease, GPD becomes that new, larger, percent_decrease
+                        GPDticker = ticker                              'stores the largest decrease ticker string into GPDticker
+                        ws.Cells(3, 17).Value = GPD                     'prints greatest percent derease to cell Q3
+                        ws.Cells(3, 17).NumberFormat = "0.00%"          'formats cell Q3 to percent
+                        ws.Cells(3, 16).Value = GPDticker               'prints GPDticker to cell P3
+                    End If
+                End If
+                
+                'greatest total volume function
+                If volume > GTV Then                                    'checks if volume is greater than GTV
+                    GTV = volume                                        'if volume is greater, then GTV becomes that new volume since it's higher
+                    GTVticker = ticker                                  'loads largest ticker string to GTVticker
+                    ws.Cells(4, 17).Value = GTV                         'print GTV to cell Q4
+                    ws.Cells(4, 17).NumberFormat = "#,###"              'format volume to comma style for easier legibility
+                    ws.Cells(4, 16).Value = GTVticker                   'print GTVticker to cell P4
+                End If
+                
+                'prints the function outputs to the correct rows in each sheet
+                ws.Cells(count, 11).Value = percent_change              'populate cell (count, 11) with the percent_change as calculated above
+                ws.Cells(count, 11).NumberFormat = "0.00%"              'format the value of cell (count,11) with percentage with 2 decimal places
+                ws.Cells(count, 12).Value = volume                      'populate cell (count, 12) with the running total of stock volume for the ticker symbol
+                ws.Cells(count, 12).NumberFormat = "#,###"              'format the volume to comma style for easier legibility
+                
+                opening = ws.Cells(i + 1, 3).Value                      'populate the opening variable with the next ticker's opening price
+                ticker = ws.Cells(i + 1, 1).Value                       'populate the ticker string variable with the next ticker's opening string
+                count = count + 1                                       'increase the count variable by 1
+                volume = 0                                              'reset the stock volume variable to 0 so that an accurate volume for the next ticker symbol can be created
+            End If                                                      'end the if cycle from before
+        Next i                                                          'iterate to the next i, which resets the For loop to look at the next i value row
+    Next ws                                                             'moves on to the next worksheet to repeat this process
+End Sub                                                                 'end subroutine
+
+Sub clear()                                                             'this subroutine will clear all of the work from above, to allow for quicker testing
+    Dim lastrow As Long                                                 'initialize lastrow variable
+    
+    For Each ws In Worksheets                                           'iterates through every worksheet
+        lastrow = ws.Cells(Rows.count, 1).End(xlUp).Row                 'finds the lastrow
+        ws.Range("I1:P" & lastrow).Value = ""                           'clears the contents of every new cell we created before
+
+        ' clear conditional formatting
+        ws.Range("J1:J" & lastrow).Interior.ColorIndex = 0              'clears the conditional formatting in every new cell we created before (resets the color to null)
+    Next ws                                                             'moves to next worksheet to repeat the clearing loop
+End Sub
